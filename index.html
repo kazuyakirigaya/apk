@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memories</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a">
+<style>
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: #0f172a;
+  color: #e5e7eb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.container {
+  background: #111827;
+  padding: 20px;
+  border-radius: 16px;
+  width: 340px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+}
+
+h2 {
+  margin: 0;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.sub {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-bottom: 15px;
+}
+
+input, textarea {
+  width: 100%;
+  margin: 6px 0;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  background: #1f2937;
+  color: white;
+  font-size: 13px;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #6b7280;
+}
+
+button {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: #2563eb;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  background: #1d4ed8;
+}
+
+.memory {
+  background: #1f2937;
+  padding: 10px;
+  border-radius: 12px;
+  margin-top: 12px;
+  font-size: 13px;
+  position: relative;
+}
+
+.memory img {
+  width: 100%;
+  border-radius: 10px;
+  margin-top: 8px;
+}
+
+.delete {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  cursor: pointer;
+  color: #9ca3af;
+}
+
+.delete:hover {
+  color: #ef4444;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h2>Memories</h2>
+  <div class="sub">A place for what matters.</div>
+
+  <input type="date" id="date">
+  <textarea id="text" placeholder="Write something..."></textarea>
+  <input type="file" id="photo" accept="image/*">
+
+  <button onclick="saveMemory()">Save</button>
+
+  <div id="list"></div>
+</div>
+
+<script>
+function saveMemory() {
+  const date = document.getElementById("date").value;
+  const text = document.getElementById("text").value;
+  const file = document.getElementById("photo").files[0];
+
+  if (!date || !text) return;
+
+  const reader = new FileReader();
+
+  reader.onload = function(e) {
+    const memories = JSON.parse(localStorage.getItem("memories")) || [];
+
+    memories.push({
+      date,
+      text,
+      img: e.target.result
+    });
+
+    localStorage.setItem("memories", JSON.stringify(memories));
+
+    document.getElementById("text").value = "";
+    document.getElementById("photo").value = "";
+
+    loadMemories();
+  };
+
+  if (file) {
+    reader.readAsDataURL(file);
+  } else {
+    reader.onload({ target: { result: "" } });
+  }
+}
+
+function loadMemories() {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  let memories = JSON.parse(localStorage.getItem("memories")) || [];
+  memories = memories.reverse();
+
+  memories.forEach((m, index) => {
+    const div = document.createElement("div");
+    div.className = "memory";
+
+    div.innerHTML = `
+      <span class="delete" onclick="deleteMemory(${index})">×</span>
+      <b>${m.date}</b><br>${m.text}
+      ${m.img ? `<img src="${m.img}">` : ""}
+    `;
+
+    list.appendChild(div);
+  });
+}
+
+function deleteMemory(index) {
+  let memories = JSON.parse(localStorage.getItem("memories")) || [];
+  memories.splice(memories.length - 1 - index, 1);
+
+  localStorage.setItem("memories", JSON.stringify(memories));
+  loadMemories();
+}
+
+loadMemories();
+</script>
+
+</body>
+</html>
